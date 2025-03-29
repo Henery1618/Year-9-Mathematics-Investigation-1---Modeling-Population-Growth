@@ -39,3 +39,16 @@ def quit(text):
         sys.exit()
     else:
         return text
+
+def convert_time(value, original_unit, target_unit):
+    time_units = {
+        "day": 86400,
+        "halfday": 43200,
+        "quarterday": 21600,
+        "hour": 3600,
+        "minute": 60,
+        "second": 1
+    }
+    seconds = value * time_units[original_unit]
+    final_value = seconds / time_units[target_unit]
+    return final_value
