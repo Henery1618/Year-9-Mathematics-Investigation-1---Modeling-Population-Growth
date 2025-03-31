@@ -68,6 +68,21 @@ def is_percentage(value): # Check if the value is a percentage
         return False
     return float(value)/100 # Return the value as a decimal
 
+def input_time_error_check(input_time):
+    input_time = input_time.lower()
+    while " d" in input_time: # Remove the space between time with days on the end
+        input_time = input_time.replace(" d", "d")
+    while "  " in input_time: # Remove extra spaces
+        input_time = input_time.replace("  ", " ")
+    input_time = input_time.split(" ")
+    while input_time[1].endswith("s"): # Remove trailing "s"
+        input_time[1] = input_time[1][:-1]
+    if not is_float(input_time[0]) or input_time[1] not in time_units or len(input_time) != 2: # Validate input
+        cprint("Please enter a valid time.", "red", "on_black")
+        return False
+    input_time[0] = float(input_time[0]) # Convert the first element to a float
+    return input_time
+
 def naive_growth(): # Naive growth function (simple growth)
     # N(t) = N(0) + r * t where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time in seconds.
     initial_population = float(quit(input(colored("Enter the initial population: ", "blue", "on_black")))) # Get the initial population from the user
