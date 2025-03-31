@@ -49,8 +49,11 @@ def quit(text): # Quit function
     else:
         return text # If the user does not type quit, the program will continue
 
-def convert_time(value, original_unit, target_unit): # Convert time units
-    final_value = value * time_units[original_unit] / time_units[target_unit] # Convert the value to seconds and then to the target unit
+def convert_time(value, original_unit, target_unit, calculate_percentage): # Convert time units
+    if not calculate_percentage:
+        final_value = value * time_units[original_unit] / time_units[target_unit] # Convert the value to seconds and then to the target unit
+    else:
+        final_value = (value / time_units[original_unit]) * time_units[target_unit] * 100 # Adjusted percentage calculation
     return final_value # Return the final value in the target unit
 
 def is_float(value): # Check if the value is a float
@@ -63,14 +66,14 @@ def is_float(value): # Check if the value is a float
 
 def is_percentage(value): # Check if the value is a percentage
     value = value.replace("%", "") # Remove the % sign from the value
-    if value.isfloat() == False: # If the value is not a number, return False
+    if is_float(value) == False: # If the value is not a number, return False
         cprint("Please enter a valid percentage.", "red", "on_black")
         return False
     return float(value)/100 # Return the value as a decimal
 
 def input_time_error_check(input_time):
     input_time = input_time.lower()
-    while " d" in input_time: # Remove the space between time with days on the end
+    while "f d" in input_time or "r d" in input_time: # Remove the space between time with days on the end
         input_time = input_time.replace(" d", "d")
     while "  " in input_time: # Remove extra spaces
         input_time = input_time.replace("  ", " ")
@@ -84,13 +87,20 @@ def input_time_error_check(input_time):
     return input_time
 
 def naive_growth(): # Naive growth function (simple growth)
-    # N(t) = N(0) + r * t where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time in seconds.
-    initial_population = float(quit(input(colored("Enter the initial population: ", "blue", "on_black")))) # Get the initial population from the user
-    growth_rate = quit(input(colored("Enter the growth rate: ", "blue", "on_black"))) # Get the growth rate from the user
-    growth_time_unit = quit(input(colored("Enter the time unit: ", "blue", "on_black"))) # Get the time unit from the user
-    growth_time = float(quit(input(colored(f"Enter the amount of {growth_time_unit}(s): ", "blue", "on_black")))) # Get the amount of time (in units) from the user
-    growth_rate = growth_rate.replace("%", "")
-    growth_rate = float(growth_rate)
-    cprint(f"Calculating {initial_population} bacteria with a growth rate of {growth_rate} over {growth_time} {growth_time_unit}(s) (naive growth)", "green", "on_black")
-    population_after_growth = initial_population * (1 + growth_rate/100 * growth_time) # Calculate the population after growth using the naive growth formula
-    return population_after_growth
+    # N(t) = N(0) + (N(0) * r * t) where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time in seconds.
+    initial_population = is_float(quit(input(colored("Enter the initial population: ", "blue", "on_black")))) # Get the initial population from the user
+    while initial_population == False: # If the input is not a number, ask for the input again
+        initial_population = is_float(quit(input(colored("Enter the initial population: ", "blue", "on_black")))) # Ask for the input again
+    growth_rate = is_percentage(quit(input(colored("Enter the growth rate: ", "blue", "on_black")))) # Above comments apply to the other inputs as well
+    while growth_rate == False:
+        growth_rate = is_percentage(quit(input(colored("Enter the growth rate: ", "blue", "on_black"))))
+    growth_time_period = input_time_error_check(quit(input(colored(f"Enter the time for one growth period: ", "blue", "on_black"))))
+    while growth_time_period == False:
+        growth_time_period = input_time_error_check(quit(input(colored(f"Enter the time for one growth period: ", "blue", "on_black"))))
+    growth_time = input_time_error_check(quit(input(colored("Enter the amount of time to project into the future: ", "blue", "on_black"))))
+    while growth_time == False:
+        growth_time = input_time_error_check(quit(input(colored("Enter the amount of time to project into the future: ", "blue", "on_black"))))
+    # Calculate the simple interest
+    total_time_periods = convert_time(growth_time[0], growth_time[1], growth_time_period[1], False) / growth_time_period[0] # Calculate how many growth periods are in the total time
+    final_amount = initial_population + (initial_population * growth_rate * total_time_periods) # Calculate the final amount using the formula N(t) = N(0) + (N(0) * r * t)
+    return final_amount # Return the final amount
