@@ -4,7 +4,6 @@ import sys
 import tabulate
 
 # Formatting
-# White on black for program outputs
 # Green on black for general text
 # Red on black for error text
 # Blue on black for input text
@@ -88,6 +87,7 @@ def input_time_error_check(input_time):
 
 def naive_growth(): # Naive growth function (simple growth)
     # N(t) = N(0) + (N(0) * r * t) where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time in seconds.
+    cprint("\nNaive Growth (simple growth) Calculator!", "green", "on_black")
     initial_population = is_float(quit(input(colored("Enter the initial population: ", "blue", "on_black")))) # Get the initial population from the user
     while initial_population == False: # If the input is not a number, ask for the input again
         initial_population = is_float(quit(input(colored("Enter the initial population: ", "blue", "on_black")))) # Ask for the input again
@@ -101,6 +101,11 @@ def naive_growth(): # Naive growth function (simple growth)
     while growth_time == False:
         growth_time = input_time_error_check(quit(input(colored("Enter the amount of time to project into the future: ", "blue", "on_black"))))
     # Calculate the simple interest
+    cprint(f"Calculating growth of {initial_population} with a growth rate of {growth_rate*100}% over a period of {growth_time[0]} {growth_time[1]}(s) with a growth period of {growth_time_period[0]} {growth_time_period[1]}(s)...", "green", "on_black")
     total_time_periods = convert_time(growth_time[0], growth_time[1], growth_time_period[1], False) / growth_time_period[0] # Calculate how many growth periods are in the total time
     final_amount = initial_population + (initial_population * growth_rate * total_time_periods) # Calculate the final amount using the formula N(t) = N(0) + (N(0) * r * t)
     return final_amount # Return the final amount
+
+welcome()
+while True:
+    print(naive_growth())
