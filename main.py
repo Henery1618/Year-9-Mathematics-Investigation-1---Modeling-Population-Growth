@@ -9,6 +9,15 @@ import tabulate
 # Red on black for error text
 # Blue on black for input text
 
+time_units = { # Define time units in seconds
+    "day": 86400,
+    "halfday": 43200,
+    "quarterday": 21600,
+    "hour": 3600,
+    "minute": 60,
+    "second": 1
+}
+
 def welcome(): # Welcome message
     cprint(f" _    _        _", "white", "on_black")
     time.sleep(0.1)
@@ -52,7 +61,15 @@ def convert_time(value, original_unit, target_unit, calculate_percentage): # Con
     seconds = value * time_units[original_unit] # Convert the value to seconds
     final_value = seconds / time_units[target_unit] # Convert the seconds to the target unit
     return final_value # Return the final value in the target unit
-    
+
+def is_float(value): # Check if the value is a float
+    try:
+        float(value) # Try to convert the value to a float
+        return float(value)
+    except ValueError:
+        cprint("Please enter a valid number.", "red", "on_black")
+        return False # If unsuccessful, return False
+
 def naive_growth(): # Naive growth function (simple growth)
     # N(t) = N(0) + r * t where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time in seconds.
     initial_population = float(quit(input(colored("Enter the initial population: ", "blue", "on_black")))) # Get the initial population from the user
