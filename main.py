@@ -49,17 +49,8 @@ def quit(text): # Quit function
     else:
         return text # If the user does not type quit, the program will continue
 
-def convert_time(value, original_unit, target_unit, calculate_percentage): # Convert time units
-    time_units = { # Define time units in seconds
-        "day": 86400,
-        "halfday": 43200,
-        "quarterday": 21600,
-        "hour": 3600,
-        "minute": 60,
-        "second": 1
-    }
-    seconds = value * time_units[original_unit] # Convert the value to seconds
-    final_value = seconds / time_units[target_unit] # Convert the seconds to the target unit
+def convert_time(value, original_unit, target_unit): # Convert time units
+    final_value = value * time_units[original_unit] / time_units[target_unit] # Convert the value to seconds and then to the target unit
     return final_value # Return the final value in the target unit
 
 def is_float(value): # Check if the value is a float
@@ -69,6 +60,13 @@ def is_float(value): # Check if the value is a float
     except ValueError:
         cprint("Please enter a valid number.", "red", "on_black")
         return False # If unsuccessful, return False
+
+def is_percentage(value): # Check if the value is a percentage
+    value = value.replace("%", "") # Remove the % sign from the value
+    if value.isfloat() == False: # If the value is not a number, return False
+        cprint("Please enter a valid percentage.", "red", "on_black")
+        return False
+    return float(value)/100 # Return the value as a decimal
 
 def naive_growth(): # Naive growth function (simple growth)
     # N(t) = N(0) + r * t where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time in seconds.
