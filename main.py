@@ -16,6 +16,11 @@ time_units = { # Define time units in seconds
     "minute": 60,
     "second": 1
 }
+true_inputs = ["yes", "y", "true", "t", "1"] # Define true inputs for yes/no questions
+false_inputs = ["no", "n", "false", "f", "0"] # Define false inputs for yes/no questions
+
+menu_num = "Null"
+repeat_menu = "Null"
 
 def welcome(): # Welcome message
     cprint(f" _    _        _", "white", "on_black")
@@ -32,8 +37,9 @@ def welcome(): # Welcome message
     time.sleep(0.25)
     cprint("Welcome to my Mathematics Investigation!", "green", "on_black")
     time.sleep(0.25)
-    cprint("If you decide to quit the program at any point, type quit! (Your results will automatically display)", "green", "on_black")
-    print()
+    cprint("If you decide to quit the program at any point, type quit!", "green", "on_black")
+    time.sleep(0.25)
+    cprint("If you want to view the menu again, type menu!", "green", "on_black")
 
 def quit(text): # Quit function
     if text.lower() == "quit" or text.lower() == "exit": # If the user types quit or exit, the program will terminate
@@ -47,6 +53,25 @@ def quit(text): # Quit function
         sys.exit()
     else:
         return text # If the user does not type quit, the program will continue
+
+def menu():
+    global menu_num, repeat_menu
+    print()
+    cprint("Please select an option:", "green", "on_black")
+    cprint("1. Naive Growth (simple growth)", "green", "on_black")
+    cprint("2. Sophisticated Growth (exponential growth)", "green", "on_black")
+    cprint("3. Naive vs Sophisticated growth comparison", "green", "on_black")
+    cprint("4. Projected time until a certain population is reached (exponential growth)", "green", "on_black")
+    cprint("5. Comparing sophisticated growth with different growth rates", "green", "on_black")
+    menu_num = input(colored("Enter your choice: ", "blue", "on_black")) # Get the user's choice
+    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 5:
+        cprint("Please enter a valid choice.", "red", "on_black")
+        menu_num = input(colored("Enter your choice: ", "blue", "on_black")) # Get the user's choice
+    repeat_menu = input(colored("Do you want to loop the selected menu?: ", "blue", "on_black"))
+    while repeat_menu.lower() not in true_inputs and repeat_menu.lower() not in false_inputs:
+        cprint("Please enter a valid choice.", "red", "on_black")
+        repeat_menu = input(colored("Do you want to loop the selected menu?: ", "blue", "on_black"))
+    menu_num = int(menu_num) # Convert the menu number to an integer
 
 def convert_time(value, original_unit, target_unit, calculate_percentage): # Convert time units
     if not calculate_percentage:
@@ -108,4 +133,10 @@ def naive_growth(): # Naive growth function (simple growth)
 
 welcome()
 while True:
-    print(naive_growth())
+    menu()
+    while menu_num == 1:
+        print(naive_growth())
+        if repeat_menu in true_inputs:
+            continue
+        else:
+            break
