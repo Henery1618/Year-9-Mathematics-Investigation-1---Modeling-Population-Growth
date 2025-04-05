@@ -21,6 +21,7 @@ false_inputs = ["no", "n", "false", "f", "0"] # Define false inputs for yes/no q
 
 menu_num = "Null"
 repeat_menu = "Null"
+change_menu_bool = False
 
 def welcome(): # Welcome message
     cprint(f" _    _        _", "white", "on_black")
@@ -55,7 +56,7 @@ def quit(text): # Quit function
         return text # If the user does not type quit, the program will continue
 
 def menu():
-    global menu_num, repeat_menu
+    global menu_num, repeat_menu, change_menu_bool
     print()
     cprint("Please select an option:", "green", "on_black")
     cprint("1. Naive Growth (simple growth)", "green", "on_black")
@@ -63,15 +64,23 @@ def menu():
     cprint("3. Naive vs Sophisticated growth comparison", "green", "on_black")
     cprint("4. Projected time until a certain population is reached (exponential growth)", "green", "on_black")
     cprint("5. Comparing sophisticated growth with different growth rates", "green", "on_black")
-    menu_num = input(colored("Enter your choice: ", "blue", "on_black")) # Get the user's choice
+    menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
     while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 5:
         cprint("Please enter a valid choice.", "red", "on_black")
-        menu_num = input(colored("Enter your choice: ", "blue", "on_black")) # Get the user's choice
-    repeat_menu = input(colored("Do you want to loop the selected menu?: ", "blue", "on_black"))
+        menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
+    repeat_menu = quit(input(colored("Do you want to loop the selected menu?: ", "blue", "on_black")))
     while repeat_menu.lower() not in true_inputs and repeat_menu.lower() not in false_inputs:
         cprint("Please enter a valid choice.", "red", "on_black")
-        repeat_menu = input(colored("Do you want to loop the selected menu?: ", "blue", "on_black"))
+        repeat_menu = quit(input(colored("Do you want to loop the selected menu?: ", "blue", "on_black")))
     menu_num = int(menu_num) # Convert the menu number to an integer
+    change_menu_bool = False
+
+def change_menu(text):
+    global change_menu_bool
+    if text.lower() == "menu":
+        change_menu_bool = True
+    else:
+        return text
 
 def convert_time(value, original_unit, target_unit, calculate_percentage): # Convert time units
     if not calculate_percentage:
@@ -81,6 +90,8 @@ def convert_time(value, original_unit, target_unit, calculate_percentage): # Con
     return final_value # Return the final value in the target unit
 
 def is_float(value): # Check if the value is a float
+    if value == None:
+        return False # If the value is None, return False
     try:
         float(value) # Try to convert the value to a float
         return float(value)
@@ -89,6 +100,8 @@ def is_float(value): # Check if the value is a float
         return False # If unsuccessful, return False
 
 def is_percentage(value): # Check if the value is a percentage
+    if value == None:
+        return False # If the value is None, return False
     value = value.replace("%", "") # Remove the % sign from the value
     if is_float(value) == False: # If the value is not a number, return False
         cprint("Please enter a valid percentage.", "red", "on_black")
@@ -96,6 +109,8 @@ def is_percentage(value): # Check if the value is a percentage
     return float(value)/100 # Return the value as a decimal
 
 def input_time_error_check(input_time):
+    if input_time == None:
+        return False # If the input is None, return False
     input_time = input_time.lower()
     while "f d" in input_time or "r d" in input_time: # Remove the space between time with days on the end
         input_time = input_time.replace(" d", "d")
@@ -111,32 +126,41 @@ def input_time_error_check(input_time):
     return input_time
 
 def naive_growth(): # Naive growth function (simple growth)
+    global change_menu_bool
     # N(t) = N(0) + (N(0) * r * t) where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time in seconds.
     cprint("\nNaive Growth (simple growth) Calculator!", "green", "on_black")
-    initial_population = is_float(quit(input(colored("Enter the initial population: ", "blue", "on_black")))) # Get the initial population from the user
-    while initial_population == False: # If the input is not a number, ask for the input again
-        initial_population = is_float(quit(input(colored("Enter the initial population: ", "blue", "on_black")))) # Ask for the input again
-    growth_rate = is_percentage(quit(input(colored("Enter the growth rate: ", "blue", "on_black")))) # Above comments apply to the other inputs as well
-    while growth_rate == False:
-        growth_rate = is_percentage(quit(input(colored("Enter the growth rate: ", "blue", "on_black"))))
-    growth_time_period = input_time_error_check(quit(input(colored(f"Enter the time for one growth period: ", "blue", "on_black"))))
-    while growth_time_period == False:
-        growth_time_period = input_time_error_check(quit(input(colored(f"Enter the time for one growth period: ", "blue", "on_black"))))
-    growth_time = input_time_error_check(quit(input(colored("Enter the amount of time to project into the future: ", "blue", "on_black"))))
-    while growth_time == False:
-        growth_time = input_time_error_check(quit(input(colored("Enter the amount of time to project into the future: ", "blue", "on_black"))))
+    if change_menu_bool == False:
+        initial_population = is_float(change_menu(quit(input(colored("Enter the initial population: ", "blue", "on_black"))))) # Get the initial population from the user
+        while initial_population == False and change_menu_bool == False: # If the input is not a number, ask for the input again
+            initial_population = is_float(change_menu(quit(input(colored("Enter the initial population: ", "blue", "on_black"))))) # Ask for the input again
+    if change_menu_bool == False:
+        growth_rate = is_percentage(change_menu(quit(input(colored("Enter the growth rate: ", "blue", "on_black"))))) # Above comments apply to the other inputs as well
+        while growth_rate == False and change_menu_bool == False:
+            growth_rate = is_percentage(change_menu(quit(input(colored("Enter the growth rate: ", "blue", "on_black")))))
+    if change_menu_bool == False:
+        growth_time_period = input_time_error_check(change_menu(quit(input(colored(f"Enter the time for one growth period: ", "blue", "on_black")))))
+        while growth_time_period == False and change_menu_bool == False:
+            growth_time_period = input_time_error_check(change_menu(quit(input(colored(f"Enter the time for one growth period: ", "blue", "on_black")))))
+    if change_menu_bool == False:
+        growth_time = input_time_error_check(change_menu(quit(input(colored("Enter the amount of time to project into the future: ", "blue", "on_black")))))
+        while growth_time == False and change_menu_bool == False:
+            growth_time = input_time_error_check(change_menu(quit(input(colored("Enter the amount of time to project into the future: ", "blue", "on_black")))))
     # Calculate the simple interest
-    cprint(f"Calculating growth of {initial_population} with a growth rate of {growth_rate*100}% over a period of {growth_time[0]} {growth_time[1]}(s) with a growth period of {growth_time_period[0]} {growth_time_period[1]}(s)...", "green", "on_black")
-    total_time_periods = convert_time(growth_time[0], growth_time[1], growth_time_period[1], False) / growth_time_period[0] # Calculate how many growth periods are in the total time
-    final_amount = initial_population + (initial_population * growth_rate * total_time_periods) # Calculate the final amount using the formula N(t) = N(0) + (N(0) * r * t)
-    return final_amount # Return the final amount
+    if change_menu_bool == False:
+        cprint(f"Calculating growth of {initial_population} with a growth rate of {growth_rate*100}% over a period of {growth_time[0]} {growth_time[1]}(s) with a growth period of {growth_time_period[0]} {growth_time_period[1]}(s)...", "green", "on_black")
+        total_time_periods = convert_time(growth_time[0], growth_time[1], growth_time_period[1], False) / growth_time_period[0] # Calculate how many growth periods are in the total time
+        final_amount = initial_population + (initial_population * growth_rate * total_time_periods) # Calculate the final amount using the formula N(t) = N(0) + (N(0) * r * t)
+        return [initial_population, growth_rate, growth_time_period, growth_time, final_amount] # Return the final amount
 
 welcome()
 while True:
     menu()
     while menu_num == 1:
-        print(naive_growth())
-        if repeat_menu in true_inputs:
-            continue
+        result = naive_growth()
+        if change_menu_bool == False:
+            print()
+            cprint(f"Starting with an initial population of {result[0]}, growing at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {result[4]:.2f} bacteria.", "green", "on_black")
         else:
+            break
+        if repeat_menu in false_inputs or change_menu_bool == True:
             break
