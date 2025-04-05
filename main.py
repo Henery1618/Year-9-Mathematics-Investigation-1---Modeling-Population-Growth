@@ -125,10 +125,7 @@ def input_time_error_check(input_time):
     input_time[0] = float(input_time[0]) # Convert the first element to a float
     return input_time
 
-def naive_growth(): # Naive growth function (simple growth)
-    global change_menu_bool
-    # N(t) = N(0) + (N(0) * r * t) where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time in seconds.
-    cprint("\nNaive Growth (simple growth) Calculator!", "green", "on_black")
+def growth_inputs():
     if change_menu_bool == False:
         initial_population = is_float(change_menu(quit(input(colored("Enter the initial population: ", "blue", "on_black"))))) # Get the initial population from the user
         while initial_population == False and change_menu_bool == False: # If the input is not a number, ask for the input again
@@ -145,12 +142,32 @@ def naive_growth(): # Naive growth function (simple growth)
         growth_time = input_time_error_check(change_menu(quit(input(colored("Enter the amount of time to project into the future: ", "blue", "on_black")))))
         while growth_time == False and change_menu_bool == False:
             growth_time = input_time_error_check(change_menu(quit(input(colored("Enter the amount of time to project into the future: ", "blue", "on_black")))))
-    # Calculate the simple interest
     if change_menu_bool == False:
-        cprint(f"Calculating growth of {initial_population} with a growth rate of {growth_rate*100}% over a period of {growth_time[0]} {growth_time[1]}(s) with a growth period of {growth_time_period[0]} {growth_time_period[1]}(s)...", "green", "on_black")
-        total_time_periods = convert_time(growth_time[0], growth_time[1], growth_time_period[1], False) / growth_time_period[0] # Calculate how many growth periods are in the total time
-        final_amount = initial_population + (initial_population * growth_rate * total_time_periods) # Calculate the final amount using the formula N(t) = N(0) + (N(0) * r * t)
-        return [initial_population, growth_rate, growth_time_period, growth_time, final_amount] # Return the final amount
+        return [initial_population, growth_rate, growth_time_period, growth_time] # Return the inputs as a list
+
+def naive_growth(): # Naive growth function (simple growth)
+    global change_menu_bool
+    # N(t) = N(0) + (N(0) * r * t) where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time
+    cprint("\nNaive Growth (simple growth) Calculator!", "green", "on_black")
+    inputs = growth_inputs() # Get the inputs from the user
+    # Calculate the simple growth
+    if change_menu_bool == False:
+        cprint(f"Calculating naive (simple) growth of {inputs[0]} with a growth rate of {inputs[1]*100}% every {inputs[2][0]} {inputs[2][1]}(s), over a period of {inputs[3][0]} {inputs[3][1]}(s)...", "green", "on_black")
+        total_time_periods = convert_time(inputs[3][0], inputs[3][1], inputs[2][1], False) / inputs[2][0] # Calculate how many growth periods are in the total time
+        final_amount = inputs[0] + (inputs[0] * inputs[1] * total_time_periods) # Calculate the final amount using the formula N(t) = N(0) + (N(0) * r * t)
+        return [inputs[0], inputs[1], inputs[2], inputs[3], final_amount] # Return the final amount
+
+def sophisticated_growth(): # Sophisticated growth function (exponential growth)
+    global change_menu_bool
+    # N(t) = N(0) * (1 + r)^t where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time
+    cprint("\nSophisticated Growth (exponential growth) Calculator!", "green", "on_black")
+    inputs = growth_inputs() # Get the inputs from the user
+    # Calculate the exponential growth
+    if change_menu_bool == False:
+        cprint(f"Calculating sophisticated (exponential) growth of {inputs[0]} with a growth rate of {inputs[1]*100}% every {inputs[2][0]} {inputs[2][1]}(s), over a period of {inputs[3][0]} {inputs[3][1]}(s)...", "green", "on_black")
+        total_time_periods = convert_time(inputs[3][0], inputs[3][1], inputs[2][1], False) / inputs[2][0] # Calculate how many growth periods are in the total time
+        final_amount = inputs[0] * (1 + inputs[1])**total_time_periods
+        return [inputs[0], inputs[1], inputs[2], inputs[3], final_amount]
 
 welcome()
 while True:
@@ -159,8 +176,13 @@ while True:
         result = naive_growth()
         if change_menu_bool == False:
             print()
-            cprint(f"Starting with an initial population of {result[0]}, growing at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {result[4]:.2f} bacteria.", "green", "on_black")
-        else:
+            cprint(f"Starting with an initial population of {result[0]}, growing simply at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {result[4]:.2f} bacteria.", "green", "on_black")
+        if repeat_menu in false_inputs or change_menu_bool == True:
             break
+    while menu_num == 2:
+        result = sophisticated_growth()
+        if change_menu_bool == False:
+            print()
+            cprint(f"Starting with an initial population of {result[0]}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {result[4]:.2f} bacteria.", "green", "on_black")
         if repeat_menu in false_inputs or change_menu_bool == True:
             break
