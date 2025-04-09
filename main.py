@@ -168,15 +168,18 @@ def naive_growth(is_comparison): # Naive growth function (simple growth)
         final_amount = inputs[0] + (inputs[0] * inputs[1] * total_time_periods) # Calculate the final amount using the formula N(t) = N(0) + (N(0) * r * t)
         return [inputs[0], inputs[1], inputs[2], inputs[3], final_amount] # Return the final amount
 
-def sophisticated_growth(is_comparison, target): # Sophisticated growth function (exponential growth)
+def sophisticated_growth(is_comparison, target, is_self_comparison): # Sophisticated growth function (exponential growth)
     global change_menu_bool
     # N(t) = N(0) * (1 + r)^t where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time
-    if not is_comparison and not target:
+    if not is_comparison and not target and not is_self_comparison:
         cprint("\nSophisticated Growth (exponential growth) Calculator!", "green", "on_black")
         inputs = growth_inputs(False) # Get the inputs from the user
-    elif is_comparison:
+    elif is_self_comparison != False:
+        cprint(f"\nSophisticated Growth Comparison, inputs for scenario {is_self_comparison}!", "green", "on_black")
+        inputs = growth_inputs(False) # Get the inputs from the user
+    elif is_comparison != False:
         inputs = is_comparison
-    elif target:
+    elif target != False:
         inputs = target
     # Calculate the exponential growth
     if change_menu_bool == False and not target:
@@ -194,23 +197,32 @@ def sophisticated_growth(is_comparison, target): # Sophisticated growth function
             growth_amounts.append([f"{time_taken} {inputs[2][1]}(s)", final_amount]) # Append the amount to the list
         return [inputs[0], inputs[1], inputs[2], inputs[3], time_taken, final_amount, growth_amounts] # Return the final amount and the time taken to reach the target population
 
-def compare_growth():
+def compare_growth(model_1, model_2):
     global change_menu_bool
     # Compare naive and sophisticated growth
-    cprint("\nNaive vs Sophisticated Growth Comparison!", "green", "on_black")
-    inputs = growth_inputs(False) # Get the inputs from the user
-    naive_result = naive_growth(inputs) # Get the result from the naive growth function
-    sophisticated_result = sophisticated_growth(inputs, False) # Get the result from the sophisticated growth function
+    cprint(f"\n{str(model_1).replace("_", " ")} vs {str(model_2).replace("_", " ")} Comparison!", "green", "on_black")
+    if model_1 == model_2:
+        model_1_result = model_1(False, False, 1)
+        model_2_result = model_2(False, False, 2)
+    else:
+        inputs = growth_inputs(False) # Get the inputs from the user    
+        model_1_result = model_1(inputs) # Get the result from the naive growth function
+        model_2_result = model_2(inputs, False, False) # Get the result from the sophisticated growth function
     if change_menu_bool == False:
-        cprint(f"Comparing naive and sophisticated growth of {inputs[0]} with a growth rate of {inputs[1]*100}% every {inputs[2][0]} {inputs[2][1]}(s), over a period of {inputs[3][0]} {inputs[3][1]}(s)...", "green", "on_black")
-        return [["Naive Growth", naive_result[4]], ["Sophisticated Growth", sophisticated_result[4]]] # Create a table to display the results
+        if model_1 == model_2:
+            cprint(f"Comparing Sophisticated Growth of {model_1_result[0]} with a growth rate of {model_1_result[1]*100}% every {model_1_result[2][0]} {model_1_result[2][1]}(s), over a period of {model_1_result[3][0]} {model_1_result[3][1]}(s)...", "green", "on_black")
+            cprint(f"VS Sophisticated Growth of {model_2_result[0]} with a growth rate of {model_2_result[1]*100}% every {model_2_result[2][0]} {model_2_result[2][1]}(s), over a period of {model_2_result[3][0]} {model_2_result[3][1]}(s)...", "green", "on_black")
+            return [["Sophisticated Growth", model_1_result[4]], ["Sophisticated Growth", model_2_result[4]]] # Create a table to display the results
+        else:
+            cprint(f"Comparing Naive and Sophisticated growth!", "green", "on_black")
+            return [["Naive Growth", model_1_result[4]], ["Sophisticated Growth", model_2_result[4]]]
 
 def time_to_target_population():
     global change_menu_bool
     # Calculate the time taken to reach a target population
     cprint("\nProjected Time Until Target Population is Reached!", "green", "on_black")
     inputs = growth_inputs(True) # Get the inputs from the user
-    time_to_target_result = sophisticated_growth(False, inputs)
+    time_to_target_result = sophisticated_growth(False, inputs, False)
     if change_menu_bool == False:
         cprint(f"Calculating the time taken to reach a target population of {inputs[3]} with an initial population of {inputs[0]} and a growth rate of {inputs[1]*100}% every {inputs[2][0]} {inputs[2][1]}(s)...", "green", "on_black")
         return time_to_target_result # Return the time taken to reach the target population
@@ -226,14 +238,14 @@ while True:
         if repeat_menu in false_inputs or change_menu_bool == True: # If the user does not want to repeat the menu or if they want to change the menu, break the loop
             break
     while menu_num == 2: # Same as above comments
-        result = sophisticated_growth(False, False)
+        result = sophisticated_growth(False, False, False)
         if change_menu_bool == False:
             print()
             cprint(f"Starting with an initial population of {result[0]}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {result[4]:.2f} bacteria.", "green", "on_black")
         if repeat_menu in false_inputs or change_menu_bool == True:
             break
     while menu_num == 3:
-        result = compare_growth()
+        result = compare_growth(naive_growth, sophisticated_growth)
         if change_menu_bool == False:
             print()
             cprint(tabulate.tabulate(result, headers=["Growth Type", "Final Population"]), "green", "on_black") # Display the results in a table
@@ -248,3 +260,8 @@ while True:
             cprint(f"Starting with an initial population of {result[0]}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), the time taken to reach a target population of {result[3]} is {result[4]} {result[2][1]}(s).", "green", "on_black")
         if repeat_menu in false_inputs or change_menu_bool == True:
             break
+    while menu_num == 5:
+        result = compare_growth(sophisticated_growth, sophisticated_growth)
+        if change_menu_bool == False:
+            print()
+            cprint(tabulate.tabulate(result, headers=["Growth Type", "Final Population"]), "green", "on_black")
