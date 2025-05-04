@@ -10,6 +10,10 @@ import math
 # Blue on black for input text
 
 time_units = { # Define time units in seconds
+    "year": 31104000,
+    "quarter": 7776000,
+    "month": 2592000,
+    "week": 604800,
     "day": 86400,
     "halfday": 43200,
     "quarterday": 21600,
@@ -23,6 +27,47 @@ false_inputs = ["no", "n", "false", "f", "0"] # Define false inputs for yes/no q
 menu_num = "Null"
 repeat_menu = "Null"
 change_menu_bool = False
+
+millnames = ["",
+             " Thousand",
+             " Million",
+             " Billion",
+             " Trillion",
+             " Quadrillion",
+             " Quintillion",
+             " Sextillion",
+             " Septillion",
+             " Octillion",
+             " Nonillion",
+             " Decillion",
+             " Undecillion",
+             " Duodecillion",
+             " Tredecillion",
+             " Quattuordecillion",
+             " Quindecillion",
+             " Sexdecillion",
+             " Septendecillion",
+             " Octodecillion",
+             " Novemdecillion",
+             " Vigintillion",
+             " Unvigintillion",
+             " Duovigintillion",
+             " Trevigintillion",
+             " Quattuorvigintillion",
+             " Quinvigintillion",
+             " Sexvigintillion",
+             " Septenvigintillion",
+             " Octovigintillion",
+             " Novemvigintillion",
+             " Trigintillion",
+             " Untrigintillion",
+             " Duotrigintillion"
+             ]
+# Adds the large numbers and rounds to one decimal
+def millify(n):
+    n = float(n)
+    millidx = max(0, min(len(millnames) - 1, int(math.floor(0 if n == 0 else math.log10(abs(n)) / 3))))
+    return '{:.1f}{}'.format(n / 10**(3 * millidx), millnames[millidx])
 
 def welcome(): # Welcome message
     cprint(f" _    _        _", "white", "on_black")
@@ -111,7 +156,8 @@ def is_percentage(value): # Check if the value is a percentage
     return float(value)/100 # Return the value as a decimal
 
 def input_time_error_check(input_time):
-    if input_time == None:
+    if input_time == None or len(input_time.split(" ")) == 1: # Check if the input is None or empty
+        cprint("Please enter a valid time.", "red", "on_black")
         return False # If the input is None, return False
     input_time = input_time.lower()
     while "f d" in input_time or "r d" in input_time: # Remove the space between time with days on the end
@@ -171,10 +217,10 @@ def naive_growth(is_comparison): # Naive growth function (simple growth)
 def sophisticated_growth(is_comparison, target, is_self_comparison): # Sophisticated growth function (exponential growth)
     global change_menu_bool
     # N(t) = N(0) * (1 + r)^t where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time
-    if not is_comparison and not target and not is_self_comparison:
+    if not is_comparison and not target and not is_self_comparison and change_menu_bool == False:
         cprint("\nSophisticated Growth (exponential growth) Calculator!", "green", "on_black")
         inputs = growth_inputs(False) # Get the inputs from the user
-    elif is_self_comparison != False:
+    elif is_self_comparison != False and change_menu_bool == False:
         cprint(f"\nSophisticated Growth Comparison, inputs for scenario {is_self_comparison}!", "green", "on_black")
         inputs = growth_inputs(False) # Get the inputs from the user
     elif is_comparison != False:
@@ -193,18 +239,20 @@ def sophisticated_growth(is_comparison, target, is_self_comparison): # Sophistic
         growth_amounts = [[f"{time_taken} {inputs[2][1]}", final_amount]] # List to store the growth amounts at each time period
         while final_amount < inputs[3]:
             final_amount = final_amount * (1 + inputs[1])
-            time_taken += 1
+            time_taken += 1*inputs[2][0]
             growth_amounts.append([f"{time_taken} {inputs[2][1]}(s)", final_amount]) # Append the amount to the list
         return [inputs[0], inputs[1], inputs[2], inputs[3], time_taken, final_amount, growth_amounts] # Return the final amount and the time taken to reach the target population
 
 def compare_growth(model_1, model_2):
     global change_menu_bool
     # Compare naive and sophisticated growth
-    cprint(f"\n{str(model_1).replace("_", " ")} vs {str(model_2).replace("_", " ")} Comparison!", "green", "on_black")
-    if model_1 == model_2:
+    if change_menu_bool == False:
+        cprint(f"\n{str(model_1).replace("_", " ")} vs {str(model_2).replace("_", " ")} Comparison!", "green", "on_black")
+    if model_1 == model_2 and change_menu_bool == False:
         model_1_result = model_1(False, False, 1)
-        model_2_result = model_2(False, False, 2)
-    else:
+        if change_menu_bool == False:
+            model_2_result = model_2(False, False, 2)
+    elif model_1 != model_2 and change_menu_bool == False:
         inputs = growth_inputs(False) # Get the inputs from the user    
         model_1_result = model_1(inputs) # Get the result from the naive growth function
         model_2_result = model_2(inputs, False, False) # Get the result from the sophisticated growth function
@@ -234,14 +282,14 @@ while True:
         result = naive_growth(False) # Call the naive growth function
         if change_menu_bool == False: # If the user did not type menu, display the result
             print()
-            cprint(f"Starting with an initial population of {result[0]}, growing simply at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {result[4]:.2f} bacteria.", "green", "on_black")
+            cprint(f"Starting with an initial population of {result[0]}, growing simply at a rate of {result[1]*100}% every {millify(result[2][0])} {result[2][1]}(s), over a total time of {millify(result[3][0])} {result[3][1]}(s), the final population is projected to be {millify(float(result[4]))} bacteria.", "green", "on_black")
         if repeat_menu in false_inputs or change_menu_bool == True: # If the user does not want to repeat the menu or if they want to change the menu, break the loop
             break
     while menu_num == 2: # Same as above comments
         result = sophisticated_growth(False, False, False)
         if change_menu_bool == False:
             print()
-            cprint(f"Starting with an initial population of {result[0]}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {result[4]:.2f} bacteria.", "green", "on_black")
+            cprint(f"Starting with an initial population of {millify(result[0])}, growing exponentially at a rate of {millify(result[1]*100)}% every {millify(result[2][0])} {result[2][1]}(s), over a total time of {millify(result[3][0])} {result[3][1]}(s), the final population is projected to be {millify(float(result[4]))} bacteria.", "green", "on_black")
         if repeat_menu in false_inputs or change_menu_bool == True:
             break
     while menu_num == 3:
@@ -265,3 +313,5 @@ while True:
         if change_menu_bool == False:
             print()
             cprint(tabulate.tabulate(result, headers=["Growth Type", "Final Population"]), "green", "on_black")
+        if repeat_menu in false_inputs or change_menu_bool == True:
+            break
