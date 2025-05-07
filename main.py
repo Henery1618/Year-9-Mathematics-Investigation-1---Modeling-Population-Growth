@@ -114,8 +114,9 @@ def menu():
     cprint("4. Projected time until a certain population is reached (exponential growth) (p2)", "green", "on_black")
     cprint("5. Comparing sophisticated growth with different growth rates (p3)", "green", "on_black")
     cprint("6. Population size at each fission event (p4)", "green", "on_black")
+    cprint("7. Population growth over one day (p5)", "green", "on_black")
     menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
-    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 6:
+    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 7:
         cprint("Please enter a valid choice.", "red", "on_black")
         menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
     repeat_menu = quit(input(colored("Do you want to loop the selected menu?: ", "blue", "on_black")))
@@ -136,7 +137,7 @@ def convert_time(value, original_unit, target_unit, calculate_percentage): # Con
     if not calculate_percentage:
         final_value = value * time_units[original_unit] / time_units[target_unit] # Convert the value to seconds and then to the target unit
     else:
-        final_value = (value / time_units[original_unit]) * time_units[target_unit] * 100 # Adjusted percentage calculation
+        final_value = (value / time_units[original_unit]) * time_units[target_unit] / 100 # Adjusted percentage calculation
     return final_value # Return the final value in the target unit
 
 def is_float(value): # Check if the value is a float
@@ -177,12 +178,12 @@ def input_time_error_check(input_time):
     input_time[0] = float(input_time[0]) # Convert the first element to a float
     return input_time
 
-def growth_inputs(target, population_increase):
+def growth_inputs(target, population_increase, one_day):
     if change_menu_bool == False:
         initial_population = is_float(change_menu(quit(input(colored("Enter the initial population: ", "blue", "on_black"))))) # Get the initial population from the user
         while initial_population == False and change_menu_bool == False: # If the input is not a number, ask for the input again
             initial_population = is_float(change_menu(quit(input(colored("Enter the initial population: ", "blue", "on_black"))))) # Ask for the input again
-    if change_menu_bool == False:
+    if change_menu_bool == False and not one_day:
         growth_rate = is_percentage(change_menu(quit(input(colored("Enter the growth rate: ", "blue", "on_black"))))) # Above comments apply to the other inputs as well
         while growth_rate == False and change_menu_bool == False:
             growth_rate = is_percentage(change_menu(quit(input(colored("Enter the growth rate: ", "blue", "on_black")))))
@@ -190,13 +191,13 @@ def growth_inputs(target, population_increase):
         growth_time_period = input_time_error_check(change_menu(quit(input(colored(f"Enter the time for one growth period: ", "blue", "on_black")))))
         while growth_time_period == False and change_menu_bool == False:
             growth_time_period = input_time_error_check(change_menu(quit(input(colored(f"Enter the time for one growth period: ", "blue", "on_black")))))
-    if change_menu_bool == False and not target and not population_increase:
+    if change_menu_bool == False and not target and not population_increase and not one_day:
         growth_time = input_time_error_check(change_menu(quit(input(colored("Enter the amount of time to project into the future: ", "blue", "on_black")))))
         while growth_time == False and change_menu_bool == False:
             growth_time = input_time_error_check(change_menu(quit(input(colored("Enter the amount of time to project into the future: ", "blue", "on_black")))))
         if change_menu_bool == False:
             return [initial_population, growth_rate, growth_time_period, growth_time] # Return the inputs as a list
-    if change_menu_bool == False and not target and population_increase:
+    if change_menu_bool == False and not target and population_increase and not one_day:
         growth_time = change_menu(quit(input(colored(f"Enter the amount of time to project into the future (enter 'target' for target population input): ", "blue", "on_black"))))
         while change_menu_bool == False and growth_time.lower() != "target" and input_time_error_check(growth_time) == False:
             growth_time = change_menu(quit(input(colored(f"Enter the amount of time to project into the future (enter 'target' for target population input): ", "blue", "on_black"))))
@@ -204,19 +205,21 @@ def growth_inputs(target, population_increase):
             target = True
         else:
             return [initial_population, growth_rate, growth_time_period, input_time_error_check(growth_time)] # Return the inputs as a list
-    if change_menu_bool == False and target:
+    if change_menu_bool == False and target and not one_day:
         target_population = is_float(change_menu(quit(input(colored("Enter the target population: ", "blue", "on_black")))))
         while target_population == False and change_menu_bool == False:
             target_population = is_float(change_menu(quit(input(colored("Enter the target population: ", "blue", "on_black")))))
         if change_menu_bool == False:
             return [initial_population, growth_rate, growth_time_period, target_population] # Return the inputs as a list
+    if change_menu_bool == False:
+        return [initial_population, growth_time_period] # Return the inputs as a list if not already
 
 def naive_growth(is_comparison): # Naive growth function (simple growth)
     global change_menu_bool
     # N(t) = N(0) + (N(0) * r * t) where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time
     if not is_comparison:
         cprint("\nNaive Growth (simple growth) Calculator!", "green", "on_black")
-        inputs = growth_inputs(False, False) # Get the inputs from the user
+        inputs = growth_inputs(False, False, False) # Get the inputs from the user
     else:
         inputs = is_comparison
     # Calculate the simple growth
@@ -231,10 +234,10 @@ def sophisticated_growth(is_comparison, target, is_self_comparison, population_i
     # N(t) = N(0) * (1 + r)^t where N(t) is the population at time t, N(0) is the initial population, r is the growth rate, and t is the time
     if not is_comparison and not target and not is_self_comparison and not population_increase and change_menu_bool == False:
         cprint("\nSophisticated Growth (exponential growth) Calculator!", "green", "on_black")
-        inputs = growth_inputs(False, False) # Get the inputs from the user
+        inputs = growth_inputs(False, False, False) # Get the inputs from the user
     elif is_self_comparison != False and change_menu_bool == False:
         cprint(f"\nSophisticated Growth Comparison, inputs for scenario {is_self_comparison}!", "green", "on_black")
-        inputs = growth_inputs(False, False) # Get the inputs from the user
+        inputs = growth_inputs(False, False, False) # Get the inputs from the user
     elif is_comparison != False:
         inputs = is_comparison
     elif target != False:
@@ -281,7 +284,7 @@ def compare_growth(model_1, model_2):
             model_2_result = model_2(False, False, 2, False)
     elif model_1 != model_2 and change_menu_bool == False:
         cprint(f"\nNaive Growth vs Sophisticated Growth Comparison!", "green", "on_black")
-        inputs = growth_inputs(False, False) # Get the inputs from the user    
+        inputs = growth_inputs(False, False, False) # Get the inputs from the user    
         model_1_result = model_1(inputs) # Get the result from the naive growth function
         model_2_result = model_2(inputs, False, False, False) # Get the result from the sophisticated growth function
     if change_menu_bool == False:
@@ -297,7 +300,7 @@ def time_to_target_population():
     global change_menu_bool
     # Calculate the time taken to reach a target population
     cprint("\nProjected Time Until Target Population is Reached!", "green", "on_black")
-    inputs = growth_inputs(True, False) # Get the inputs from the user
+    inputs = growth_inputs(True, False, False) # Get the inputs from the user
     time_to_target_result = sophisticated_growth(False, inputs, False, False)
     if change_menu_bool == False:
         cprint(f"Calculating the time taken to reach a target population of {inputs[3]} with an initial population of {inputs[0]} and a growth rate of {inputs[1]*100}% every {inputs[2][0]} {inputs[2][1]}(s)...", "green", "on_black")
@@ -307,7 +310,7 @@ def population_increase():
     global change_menu_bool
     # Calculate the population size at each fission event
     cprint("\nPopulation Size at Each Fission Event!", "green", "on_black")
-    inputs = growth_inputs(False, True) # Get the inputs from the user
+    inputs = growth_inputs(False, True, False) # Get the inputs from the user
     if type(inputs[3]) == list:
         option_type = "growth_time"
     elif type(inputs[3]) == float:
@@ -317,6 +320,15 @@ def population_increase():
     elif option_type == "target":
         population_increase_result = sophisticated_growth(False, inputs, False, inputs)
     return population_increase_result, option_type # Return the population size at each fission event
+
+def one_day_growth():
+    global change_menu_bool
+    cprint("\nPopulation growth over one day", "green", "on_black")
+    inputs = growth_inputs(False, False, True) # Get the inputs from the user
+    if change_menu_bool == False:
+        inputs = [inputs[0], convert_time(100, "day", inputs[1][1], True), inputs[1], [1, "day"]]
+        one_day_growth_result = sophisticated_growth(False, False, False, inputs) # Get the result from the sophisticated growth function
+        return one_day_growth_result # Return the population growth over one day
 
 welcome()
 while True:
@@ -368,5 +380,14 @@ while True:
                 cprint(f"Starting with an initial population of {result[0]}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {float(result[4])} bacteria.", "green", "on_black")
             elif option_type == "target":
                 cprint(f"Starting with an initial population of {result[0]}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), the time taken to reach a target population of {result[3]} is {result[4]} {result[2][1]}(s).", "green", "on_black")
+        if repeat_menu in false_inputs or change_menu_bool == True:
+            break
+    while menu_num == 7:
+        result = one_day_growth()
+        if change_menu_bool == False:
+            print()
+            cprint(f"The increments of growth are as follows:", "green", "on_black")
+            cprint(tabulate.tabulate(result[5], ["Time", "Initial Population", "New Bacteria", "Final population"]), "green", "on_black")
+            cprint(f"Starting with an initial population of {result[0]}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {float(result[4])} bacteria.", "green", "on_black")
         if repeat_menu in false_inputs or change_menu_bool == True:
             break
