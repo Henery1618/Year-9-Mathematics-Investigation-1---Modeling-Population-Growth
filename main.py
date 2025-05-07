@@ -66,11 +66,16 @@ millnames = ["",
 # Adds the large numbers and rounds to one decimal
 def millify(n):
     n = float(n)
+    if n < 1000000:  # Return the number as is if less than a million
+        return str(n)
     millidx = max(0, min(len(millnames) - 1, int(math.floor(0 if n == 0 else math.log10(abs(n)) / 3))))
     return '{:.1f}{}'.format(n / 10**(3 * millidx), millnames[millidx])
 
 def no_millify(n):
     return n
+
+millify_toggle = True # Toggle for millify function
+millify_func = millify # Set the default millify function to millify
 
 def welcome(): # Welcome message
     cprint(f" _    _        _", "white", "on_black")
@@ -105,7 +110,7 @@ def quit(text): # Quit function
         return text # If the user does not type quit, the program will continue
 
 def menu():
-    global menu_num, repeat_menu, change_menu_bool
+    global menu_num, repeat_menu, change_menu_bool, millify_func
     print()
     cprint("Please select an option:", "green", "on_black")
     cprint("1. Naive Growth (simple growth)", "green", "on_black")
@@ -115,16 +120,22 @@ def menu():
     cprint("5. Comparing sophisticated growth with different growth rates (p3)", "green", "on_black")
     cprint("6. Population size at each fission event (p4)", "green", "on_black")
     cprint("7. Population growth over one day (p5)", "green", "on_black")
+    cprint(f"8. Toggle millify: Currently {millify_toggle}", "green", "on_black")
     menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
-    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 7:
+    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 9:
         cprint("Please enter a valid choice.", "red", "on_black")
         menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
-    repeat_menu = quit(input(colored("Do you want to loop the selected menu?: ", "blue", "on_black")))
-    while repeat_menu.lower() not in true_inputs and repeat_menu.lower() not in false_inputs:
-        cprint("Please enter a valid choice.", "red", "on_black")
+    if menu_num != "8":
         repeat_menu = quit(input(colored("Do you want to loop the selected menu?: ", "blue", "on_black")))
+        while repeat_menu.lower() not in true_inputs and repeat_menu.lower() not in false_inputs:
+            cprint("Please enter a valid choice.", "red", "on_black")
+            repeat_menu = quit(input(colored("Do you want to loop the selected menu?: ", "blue", "on_black")))
     menu_num = int(menu_num) # Convert the menu number to an integer
     change_menu_bool = False
+    if millify_toggle == True:
+        millify_func = millify
+    elif millify_toggle == False:
+        millify_func = no_millify
 
 def change_menu(text):
     global change_menu_bool
@@ -244,10 +255,11 @@ def sophisticated_growth(is_comparison, target, is_self_comparison, population_i
         inputs = target
     elif population_increase != False:
         inputs = population_increase
-    time_taken = 0
-    growth_amounts = [] # List to store the growth amounts at each time period
-    starting_amount = inputs[0]
-    final_amount = inputs[0] # Set the final amount to the initial population
+    if change_menu_bool == False:
+        time_taken = 0
+        growth_amounts = [] # List to store the growth amounts at each time period
+        starting_amount = inputs[0]
+        final_amount = inputs[0] # Set the final amount to the initial population
     # Calculate the exponential growth
     if change_menu_bool == False and not target:
         total_time_periods = math.floor(convert_time(inputs[3][0], inputs[3][1], inputs[2][1], False) / inputs[2][0]) # Calculate how many growth periods are in the total time
@@ -258,7 +270,7 @@ def sophisticated_growth(is_comparison, target, is_self_comparison, population_i
             for i in range(total_time_periods):
                 final_amount = final_amount * (1 + inputs[1])
                 time_taken += inputs[2][0]
-                growth_amounts.append([f"{time_taken} {inputs[2][1]}(s)", starting_amount, final_amount - starting_amount, final_amount])
+                growth_amounts.append([f"{time_taken} {inputs[2][1]}(s)", millify_func(starting_amount), millify_func(final_amount - starting_amount), millify_func(final_amount)])
                 starting_amount = final_amount
         return [inputs[0], inputs[1], inputs[2], inputs[3], final_amount, growth_amounts]
     elif change_menu_bool == False and target != False:
@@ -268,9 +280,9 @@ def sophisticated_growth(is_comparison, target, is_self_comparison, population_i
             final_amount = final_amount * (1 + inputs[1])
             time_taken += 1*inputs[2][0]
             if not population_increase:
-                growth_amounts.append([f"{time_taken} {inputs[2][1]}(s)", final_amount]) # Append the amount to the list
+                growth_amounts.append([f"{time_taken} {inputs[2][1]}(s)", millify_func(final_amount)]) # Append the amount to the list
             elif population_increase != False:
-                growth_amounts.append([f"{time_taken} {inputs[2][1]}(s)", starting_amount, final_amount - starting_amount, final_amount]) # Append the amount to the list
+                growth_amounts.append([f"{time_taken} {inputs[2][1]}(s)", millify_func(starting_amount), millify_func(final_amount - starting_amount), millify_func(final_amount)]) # Append the amount to the list
             starting_amount = final_amount
         return [inputs[0], inputs[1], inputs[2], inputs[3], time_taken, final_amount, growth_amounts] # Return the final amount and the time taken to reach the target population
 
@@ -291,10 +303,10 @@ def compare_growth(model_1, model_2):
         if model_1 == model_2:
             cprint(f"Comparing Sophisticated Growth of {model_1_result[0]} with a growth rate of {model_1_result[1]*100}% every {model_1_result[2][0]} {model_1_result[2][1]}(s), over a period of {model_1_result[3][0]} {model_1_result[3][1]}(s)...", "green", "on_black")
             cprint(f"VS Sophisticated Growth of {model_2_result[0]} with a growth rate of {model_2_result[1]*100}% every {model_2_result[2][0]} {model_2_result[2][1]}(s), over a period of {model_2_result[3][0]} {model_2_result[3][1]}(s)...", "green", "on_black")
-            return [["Sophisticated Growth", model_1_result[4]], ["Sophisticated Growth", model_2_result[4]]] # Create a table to display the results
+            return [["Sophisticated Growth", millify_func(model_1_result[4])], ["Sophisticated Growth", millify_func(model_2_result[4])]] # Create a table to display the results
         else:
             cprint(f"Comparing Naive and Sophisticated growth!", "green", "on_black")
-            return [["Naive Growth", model_1_result[4]], ["Sophisticated Growth", model_2_result[4]]]
+            return [["Naive Growth", millify_func(model_1_result[4])], ["Sophisticated Growth", millify_func(model_2_result[4])]]
 
 def time_to_target_population():
     global change_menu_bool
@@ -311,19 +323,20 @@ def population_increase():
     # Calculate the population size at each fission event
     cprint("\nPopulation Size at Each Fission Event!", "green", "on_black")
     inputs = growth_inputs(False, True, False) # Get the inputs from the user
-    if type(inputs[3]) == list:
-        option_type = "growth_time"
-    elif type(inputs[3]) == float:
-        option_type = "target"
-    if option_type == "growth_time":
-        population_increase_result = sophisticated_growth(False, False, False, inputs) # Get the result from the sophisticated growth function
-    elif option_type == "target":
-        population_increase_result = sophisticated_growth(False, inputs, False, inputs)
-    return population_increase_result, option_type # Return the population size at each fission event
+    if change_menu_bool == False:
+        if type(inputs[3]) == list:
+            option_type = "growth_time"
+        elif type(inputs[3]) == float:
+            option_type = "target"
+        if option_type == "growth_time":
+            population_increase_result = sophisticated_growth(False, False, False, inputs) # Get the result from the sophisticated growth function
+        elif option_type == "target":
+            population_increase_result = sophisticated_growth(False, inputs, False, inputs)
+        return population_increase_result, option_type # Return the population size at each fission event
 
 def one_day_growth():
     global change_menu_bool
-    cprint("\nPopulation growth over one day", "green", "on_black")
+    cprint("\nPopulation growth over one day!", "green", "on_black")
     inputs = growth_inputs(False, False, True) # Get the inputs from the user
     if change_menu_bool == False:
         inputs = [inputs[0], convert_time(100, "day", inputs[1][1], True), inputs[1], [1, "day"]]
@@ -337,14 +350,14 @@ while True:
         result = naive_growth(False) # Call the naive growth function
         if change_menu_bool == False: # If the user did not type menu, display the result
             print()
-            cprint(f"Starting with an initial population of {result[0]}, growing simply at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {float(result[4])} bacteria.", "green", "on_black")
+            cprint(f"Starting with an initial population of {millify_func(result[0])}, growing simply at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {millify_func(result[4])} bacteria.", "green", "on_black")
         if repeat_menu in false_inputs or change_menu_bool == True: # If the user does not want to repeat the menu or if they want to change the menu, break the loop
             break
     while menu_num == 2: # Same as above comments
         result = sophisticated_growth(False, False, False, False)
         if change_menu_bool == False:
             print()
-            cprint(f"Starting with an initial population of {result[0]}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {float(result[4])} bacteria.", "green", "on_black")
+            cprint(f"Starting with an initial population of {millify_func(result[0])}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {millify_func(result[4])} bacteria.", "green", "on_black")
         if repeat_menu in false_inputs or change_menu_bool == True:
             break
     while menu_num == 3:
@@ -360,7 +373,7 @@ while True:
             print()
             cprint(f"The increments of growth are as follows:", "green", "on_black")
             cprint(tabulate.tabulate(result[6], headers=["Time Period", "Population"]), "green", "on_black") # Display the growth amounts at each time period in a table
-            cprint(f"Starting with an initial population of {result[0]}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), the time taken to reach a target population of {result[3]} is {result[4]} {result[2][1]}(s).", "green", "on_black")
+            cprint(f"Starting with an initial population of {millify_func(result[0])}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), the time taken to reach a target population of {millify_func(result[3])} is {result[4]} {result[2][1]}(s).", "green", "on_black")
         if repeat_menu in false_inputs or change_menu_bool == True:
             break
     while menu_num == 5:
@@ -377,9 +390,9 @@ while True:
             cprint(f"The increments of growth are as follows:", "green", "on_black")
             cprint(tabulate.tabulate(result[-1], ["Time", "Initial Population", "New Bacteria", "Final population"]), "green", "on_black")
             if option_type == "growth_time":
-                cprint(f"Starting with an initial population of {result[0]}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {float(result[4])} bacteria.", "green", "on_black")
+                cprint(f"Starting with an initial population of {millify_func(result[0])}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {millify_func(result[4])} bacteria.", "green", "on_black")
             elif option_type == "target":
-                cprint(f"Starting with an initial population of {result[0]}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), the time taken to reach a target population of {result[3]} is {result[4]} {result[2][1]}(s).", "green", "on_black")
+                cprint(f"Starting with an initial population of {millify_func(result[0])}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), the time taken to reach a target population of {millify_func(result[3])} is {result[4]} {result[2][1]}(s).", "green", "on_black")
         if repeat_menu in false_inputs or change_menu_bool == True:
             break
     while menu_num == 7:
@@ -388,6 +401,13 @@ while True:
             print()
             cprint(f"The increments of growth are as follows:", "green", "on_black")
             cprint(tabulate.tabulate(result[5], ["Time", "Initial Population", "New Bacteria", "Final population"]), "green", "on_black")
-            cprint(f"Starting with an initial population of {result[0]}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {float(result[4])} bacteria.", "green", "on_black")
+            cprint(f"Starting with an initial population of {millify_func(result[0])}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {millify_func(result[4])} bacteria.", "green", "on_black")
         if repeat_menu in false_inputs or change_menu_bool == True:
             break
+    if menu_num == 8:
+        if millify_toggle == True:
+            millify_toggle = False
+            cprint("Millify is now off", "green", "on_black")
+        elif millify_toggle == False:
+            millify_toggle = True
+            cprint("Millify is now on", "green", "on_black")
