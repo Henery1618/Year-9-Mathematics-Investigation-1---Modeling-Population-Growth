@@ -3,6 +3,7 @@ from termcolor import *
 import sys
 import tabulate
 import math
+import matplotlib.pyplot as plt
 
 # Formatting
 # Green on black for general text
@@ -69,7 +70,7 @@ def millify(n):
     if n < 1000000:  # Return the number as is if less than a million
         return str(n)
     millidx = max(0, min(len(millnames) - 1, float(math.floor(0 if n == 0 else math.log10(abs(n)) / 3)))) # Calculate the index for the millnames list
-    return '{:.1f}{}'.format(n / 10**(3 * millidx), millnames[millidx])
+    return "{:.1f}{}".format(n / 10**(3 * millidx), millnames[int(millidx)])
 
 def no_millify(n): # Function to return the number as is without millifying
     return n
@@ -402,6 +403,26 @@ while True:
             cprint(f"The increments of growth are as follows:", "green", "on_black")
             cprint(tabulate.tabulate(result[5], ["Time", "Initial Population", "New Bacteria", "Final population"]), "green", "on_black")
             cprint(f"Starting with an initial population of {millify_func(result[0])}, growing exponentially at a rate of {result[1]*100}% every {result[2][0]} {result[2][1]}(s), over a total time of {result[3][0]} {result[3][1]}(s), the final population is projected to be {millify_func(result[4])} bacteria.", "green", "on_black")
+            show_table = "no"
+            if type(result[5][-1][1]) != float:
+                if not result[5][-1][1].replace(".", "").isnumeric(): # Check if the last entry is a string (if the population is above 1 million with millify on)
+                    cprint("Number too large, becuase millify is on, so graphing will not work.", "red", "on_black")
+                    show_table = input(colored("Do you want to see the graph of the population growth (may take a while to load)? ", "blue", "on_black")) # Ask if the user wants to see the graph
+            else:
+                show_table = input(colored("Do you want to see the graph of the population growth (may take a while to load)? ", "blue", "on_black")) # Ask if the user wants to see the graph
+            if show_table.lower() in true_inputs: # Graphing the population growth
+                times = [entry[0] for entry in result[5]]  # Extract time periods
+                populations = [float(entry[3]) for entry in result[5]]  # Extract final populations
+                plt.figure(figsize=(10, 6))
+                plt.plot(times, populations, marker="o", color="blue", label="Population Growth")
+                plt.title("Population Growth Over One Day")
+                plt.xlabel("Time")
+                plt.ylabel("Population")
+                plt.xticks(rotation=45)
+                plt.legend()
+                plt.grid(True)
+                plt.tight_layout()
+                plt.show()
         if repeat_menu in false_inputs or change_menu_bool == True:
             break
     if menu_num == 8: # Toggle millify function
